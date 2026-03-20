@@ -62,10 +62,12 @@ public class PipelineOrchestratorService {
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file has no data rows");
         }
-        metadataIngestionService.ingestRecords(collectionName, rows);
+        List<String> insertedIds = metadataIngestionService.ingestRecords(collectionName, rows);
         List<StandardizedRecord> allPolicies = metadataIngestionService.standardizeAllPolicies().values().stream()
                 .flatMap(List::stream)
                 .toList();
-        return stitchingService.stitchPolicies(allPolicies);
+        stitchingService.stitchPolicies(allPolicies);
+        List<StandardizedRecord> uploadBatch = metadataIngestionService.standardizeByIds(collectionName, insertedIds);
+        return stitchingService.computeStitchingStats(uploadBatch);
     }
 }

@@ -73,6 +73,22 @@ public class StitchingService {
         return new StitchingResult(policies.size(), matched.get(), unmatched.get());
     }
 
+    /**
+     * Same matching rules as {@link #stitchPolicies} but read-only — for reporting upload batch stats only.
+     */
+    public StitchingResult computeStitchingStats(List<StandardizedRecord> policies) {
+        int matched = 0;
+        int unmatched = 0;
+        for (StandardizedRecord policy : policies) {
+            if (findCustomer(policy).isPresent()) {
+                matched++;
+            } else {
+                unmatched++;
+            }
+        }
+        return new StitchingResult(policies.size(), matched, unmatched);
+    }
+
     private Optional<CustomerDetails> findCustomer(StandardizedRecord policy) {
         // Priority 1: Match by PAN (refCustItNum)
         String pan = policy.getPan();

@@ -6,6 +6,7 @@ import com.mypolicy.implementation.model.StandardizedRecord;
 import com.mypolicy.implementation.repository.FailedLogRepository;
 import com.mypolicy.implementation.util.DataMassagingUtil;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -13,8 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +50,14 @@ public class MetadataIngestionService {
 
     private static final List<String> POLICY_COLLECTIONS = List.of(
             "life_insurance", "auto_insurance", "health_insurance"
+    );
+
+    /**
+     * Canonical fields whose <em>source</em> column names differ per product line (unlike PAN/Mobile/Email).
+     * Used to detect when the uploaded file matches a different collection than the one selected.
+     */
+    private static final List<String> PRODUCT_SIGNATURE_KEYS = List.of(
+            "policy_id", "premium", "start_date", "policy_end", "sum_assured"
     );
 
     public List<StandardizedRecord> standardizeCollection(String collectionName) {
@@ -89,13 +101,12 @@ public class MetadataIngestionService {
      * Ingest parsed CSV rows into MongoDB. Inserts documents into the given collection.
      * Call standardizeAllPolicies() after to get StandardizedRecords for stitching.
      *
-     * @param collectionName Target collection (e.g. auto_insurance, life_insurance, health_insurance)
-     * @param rows Parsed CSV rows as List of Maps (header -> value)
+     * @return ObjectIds (hex strings) of documents inserted in this call; empty if nothing was inserted.
      */
-    public void ingestRecords(String collectionName, List<Map<String, Object>> rows) {
+    public List<String> ingestRecords(String collectionName, List<Map<String, Object>> rows) {
         if (rows == null || rows.isEmpty()) {
             log.warn("No rows to ingest for collection: {}", collectionName);
-            return;
+            return List.of();
         }
 
         Map<String, String> mapping = mappingConfig.getMappingForCollection(collectionName);
@@ -103,6 +114,8 @@ public class MetadataIngestionService {
             log.warn("No mapping for collection: {}", collectionName);
             throw new IllegalArgumentException("Unknown collection: " + collectionName);
         }
+
+        assertDeclaredCollectionMatchesFileProductType(collectionName, rows);
 
         String policyIdSourceKey = mapping.get("policy_id");
         String insurerSourceKey = mapping.get("insurer");
@@ -176,7 +189,7 @@ public class MetadataIngestionService {
 
         if (documents.isEmpty()) {
             log.info("No new records to ingest into {} (all rows were duplicates)", collectionName);
-            return;
+            return List.of();
         }
 
         downstreamRetryExecutor.executeVoidWithRetry(
@@ -195,6 +208,110 @@ public class MetadataIngestionService {
                             ": " + failedValidation + " of " + totalRows
             );
         }
+
+        List<String> insertedIds = new ArrayList<>(documents.size());
+        for (Document d : documents) {
+            if (d.getObjectId("_id") == null) {
+                throw new IllegalStateException("Insert did not assign _id for document in " + collectionName);
+            }
+            insertedIds.add(d.getObjectId("_id").toString());
+        }
+        return insertedIds;
+    }
+
+    /**
+     * Standardize only the documents inserted in the current upload (by {@code _id}), for batch-level stats.
+     */
+    public List<StandardizedRecord> standardizeByIds(String collectionName, List<String> objectIds) {
+        if (objectIds == null || objectIds.isEmpty()) {
+            return List.of();
+        }
+        Map<String, String> mapping = mappingConfig.getMappingForCollection(collectionName);
+        if (mapping.isEmpty()) {
+            return List.of();
+        }
+        List<StandardizedRecord> records = new ArrayList<>();
+        for (String idStr : objectIds) {
+            Document doc = downstreamRetryExecutor.executeWithRetry(
+                    () -> mongoTemplate.findById(new ObjectId(idStr), Document.class, collectionName),
+                    "mongo.findById",
+                    "collection=" + collectionName + ", id=" + idStr
+            );
+            if (doc == null) {
+                log.warn("Document not found after insert: {} {}", collectionName, idStr);
+                continue;
+            }
+            String objectId = doc.getObjectId("_id").toString();
+            Map<String, Object> docMap = doc.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, e -> (Object) e.getValue()));
+            records.add(StandardizedRecord.fromMongoDoc(collectionName, objectId, mapping, docMap));
+        }
+        return records;
+    }
+
+    /**
+     * Ensures the CSV/XLSX column shape matches the selected Mongo collection. Each product line uses
+     * different source headers (e.g. life: PolicyNum / SumAssured; auto: PolicyNumber / IDV). If the file
+     * clearly matches another line (higher signature score), ingestion fails fast instead of writing
+     * mis-keyed documents.
+     */
+    private void assertDeclaredCollectionMatchesFileProductType(String declaredCollection,
+                                                                List<Map<String, Object>> rows) {
+        Set<String> headers = rows.get(0).keySet().stream()
+                .map(k -> k != null ? k.trim() : "")
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Map<String, Integer> scores = new LinkedHashMap<>();
+        for (String coll : POLICY_COLLECTIONS) {
+            Map<String, String> m = mappingConfig.getMappingForCollection(coll);
+            int score = 0;
+            for (String canonical : PRODUCT_SIGNATURE_KEYS) {
+                String sourceCol = m.get(canonical);
+                if (sourceCol != null && headers.contains(sourceCol.trim())) {
+                    score++;
+                }
+            }
+            scores.put(coll, score);
+        }
+
+        int best = scores.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        if (best == 0) {
+            throw new IllegalArgumentException(
+                    "File headers do not contain recognizable product columns for any line "
+                            + "(expected columns such as PolicyNumber/IDV for auto, PolicyNum/SumAssured for life, etc.). "
+                            + "Check headers against mapping_config.json for " + declaredCollection + "."
+            );
+        }
+
+        List<String> winners = scores.entrySet().stream()
+                .filter(e -> e.getValue() == best)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (winners.size() == 1) {
+            String inferred = winners.get(0);
+            if (!inferred.equals(declaredCollection)) {
+                throw new IllegalArgumentException(
+                        "Product type mismatch: this file matches collection \"" + inferred
+                                + "\" but you selected \"" + declaredCollection + "\". "
+                                + "Choose the correct collection or fix the file headers."
+                );
+            }
+            return;
+        }
+
+        // Tie: multiple product lines match the same number of signature columns
+        if (!winners.contains(declaredCollection)) {
+            throw new IllegalArgumentException(
+                    "Product type mismatch: file could match " + winners
+                            + " but you selected \"" + declaredCollection + "\"."
+            );
+        }
+        throw new IllegalArgumentException(
+                "Ambiguous file: headers match multiple product types equally (" + winners
+                        + "). Add or correct columns so only one product line matches."
+        );
     }
 
     private Map<String, Object> coerceNumericFields(Map<String, Object> row, Map<String, String> mapping) {
