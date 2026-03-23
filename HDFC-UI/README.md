@@ -24,6 +24,8 @@ Default base URLs:
 
 The Flutter app merges **customer_details** + **unified_portfolio** for the dashboard (same data the BFF used to aggregate).
 
+- **Insurance insights** (`insights_screen.dart`): loads portfolio + advisory from the pipeline, then computes per-category current vs recommended cover and gaps (same thresholds as server advisory: life = premium×10, health ≥ ₹3L per policy, vehicle ≥ ₹1L per policy).
+
 - **Login**: `POST /api/v1/customers/login` — full name + PAN matching `customer_details`.
 
 Override URLs (optional):

@@ -6,17 +6,22 @@ import '../screens/login_screen.dart';
 import '../screens/analytical_dashboard.dart';
 import '../screens/profile_screen.dart';
 import '../screens/help_screen.dart';
+import '../screens/insights_screen.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String customerName;
   final String customerId;
   final VoidCallback? onLogoTap;
+  final bool showBackButton;
+  final VoidCallback? onBack;
 
   const CustomAppBar({
     super.key,
     required this.customerName,
     required this.customerId,
     this.onLogoTap,
+    this.showBackButton = false,
+    this.onBack,
   });
 
   @override
@@ -36,6 +41,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              if (showBackButton)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                ),
               // HDFC Logo on app bar
               InkWell(
                 onTap: onLogoTap,
@@ -148,6 +158,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                         const SizedBox(height: 8),
                         _buildMenuItem(
                           context,
+                          icon: Icons.insights_outlined,
+                          title: 'Insurance insights',
+                          subtitle: 'gaps vs recommended cover',
+                        ),
+                        const SizedBox(height: 8),
+                        _buildMenuItem(
+                          context,
                           icon: Icons.help_outline,
                           title: 'Get Help',
                         ),
@@ -184,6 +201,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             context,
             MaterialPageRoute(
               builder: (context) => AnalyticsDashboard(
+                customerName: customerName,
+                customerId: customerId,
+              ),
+            ),
+          );
+        } else if (title == 'Insurance insights') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InsightsScreen(
                 customerName: customerName,
                 customerId: customerId,
               ),

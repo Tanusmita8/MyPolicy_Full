@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/policy_model.dart';
 import '../services/backend_api.dart';
+import '../services/portfolio_insights_service.dart';
 import '../widgets/custom_appbar.dart';
 import '../widgets/donut_chart.dart';
 import '../widgets/info_card.dart';
 import 'dashboard_screen.dart';
 
-/// Coverage analytics from data-pipeline `/api/advisory` + merged portfolio for donuts.
+/// Coverage analytics: donuts use **adequacy %** (current vs recommended cover) from
+/// [PortfolioInsightsService] — same rules as pipeline advisory (life premium×10, health ₹3L,
+/// vehicle ₹1L per policy). Cards use portfolio + advisory.
 class AnalyticsDashboard extends StatefulWidget {
   final String customerName;
   final String customerId;
@@ -25,6 +28,7 @@ class AnalyticsDashboard extends StatefulWidget {
 class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
   List<Policy> _policies = [];
   Map<String, dynamic>? _advisory;
+  PortfolioInsightsSnapshot _insights = PortfolioInsightsSnapshot.empty();
   bool _loading = true;
   String? _error;
 
@@ -55,6 +59,10 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
       _loading = false;
       _policies = policies;
       _advisory = adv;
+      _insights = PortfolioInsightsService.compute(
+        mergedPortfolio: merged,
+        advisoryJson: adv,
+      );
       if (merged == null && adv == null) {
         _error = 'Could not load analytics (pipeline / services unreachable).';
       }
@@ -80,26 +88,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
     final totalProtection = policies
         .where((p) => p.status != PolicyStatus.expired)
         .fold(0.0, (sum, p) => sum + p.sumInsured);
-    final expiringSoon = policies.where((p) => p.status == PolicyStatus.due).length;
+    final dueOrExpiringSoon = policies
+        .where((p) =>
+            p.status == PolicyStatus.due ||
+            p.status == PolicyStatus.expiringsoon)
+        .length;
 
-    double getCategoryPercent(PolicyCategory category) {
-      if (policies.isEmpty || totalPolicies == 0) return 0;
-      final count = policies.where((p) => p.category == category).length;
-      return (count / totalPolicies) * 100;
-    }
-
-    final lifePercent = getCategoryPercent(PolicyCategory.life);
-    final healthPercent = getCategoryPercent(PolicyCategory.health);
-    final vehiclePercent = totalPolicies == 0
-        ? 0.0
-        : policies
-                .where((p) =>
-                    p.category == PolicyCategory.others ||
-                    p.name.toLowerCase().contains('motor') ||
-                    p.name.toLowerCase().contains('auto'))
-                .length /
-            totalPolicies *
-            100;
+    final snap = _insights;
+    final lifePercent = snap.lifeCoveragePercent;
+    final healthPercent = snap.healthCoveragePercent;
+    final vehiclePercent = snap.vehicleCoveragePercent;
 
     final gaps = _advisory?['summary'];
     final gapCount = gaps is Map ? gaps['gapsIdentified'] : null;
@@ -141,7 +139,12 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                   'Coverage analytics',
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 8),
+                Text(
+                  'Donuts: % of recommended cover met (same logic as Insurance insights).',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 22),
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
@@ -207,7 +210,8 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                             color: const Color(0xFF2E49B8),
                             title: 'Policies linked',
                             value: '$totalPolicies',
-                            subtitle: '$expiringSoon due within 30 days',
+                            subtitle:
+                                '$dueOrExpiringSoon due or expiring soon',
                           ),
                         ),
                         SizedBox(
@@ -236,8 +240,11 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
                             icon: Icons.bar_chart,
                             color: const Color(0xFF2E49B8),
                             title: 'Risk status',
-                            value: expiringSoon > 0 ? 'HIGH' : 'LOW',
-                            subtitle: 'based on due policies',
+                            value: _riskStatusValue(
+                              dueOrExpiringSoon: dueOrExpiringSoon,
+                              advisoryRisk: snap.riskStatus,
+                            ),
+                            subtitle: 'renewals + pipeline advisory',
                           ),
                         ),
                       ],
@@ -250,6 +257,16 @@ class _AnalyticsDashboardState extends State<AnalyticsDashboard> {
         },
       ),
     );
+  }
+
+  /// HIGH if any policy is due or expiring soon; else pipeline advisory band.
+  String _riskStatusValue({
+    required int dueOrExpiringSoon,
+    required String advisoryRisk,
+  }) {
+    if (dueOrExpiringSoon > 0) return 'HIGH';
+    if (advisoryRisk == 'HIGH' || advisoryRisk == 'MEDIUM') return advisoryRisk;
+    return 'LOW';
   }
 
   void _goHome(BuildContext context) {
