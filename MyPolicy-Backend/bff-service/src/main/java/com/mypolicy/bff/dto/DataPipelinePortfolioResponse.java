@@ -16,6 +16,7 @@ public class DataPipelinePortfolioResponse {
 
   @Data
   public static class PolicySummary {
+    private String recordId;
     private String policyId;
     private String insurer;
     private String sourceCollection;

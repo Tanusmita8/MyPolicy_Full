@@ -1,12 +1,6 @@
 customerId,customerFullName,refPhoneMobile,datBirthCust,custEmailID,refCustItNum,txtPermadrAdd1,txtPermadrAdd2,txtPermadrAdd3,txtPermadrZip,txtCustadrZip,namPermadrCity
-910000001,Amit Ramesh Kulkarni,919876543210,19920314,amit.kulkarni@example.com,AKCPK1123L,S/O RAMESH KULKARNI,KARVE NAGAR,NEAR POST OFFICE,411052,411052,Delhi
-910000002,Sneha Prakash Patil,919812345678,19950721,sneha.patil@example.com,BPQPP2345M,D/O PRAKASH PATIL,KOTHRUD,PAUD ROAD,411038,411038,PUNE
-910000003,Rahul Sanjay Deshmukh,919823456789,19901109,rahul.deshmukh@example.com,CDEPD3456N,S/O SANJAY DESHMUKH,WAKAD,PHASE 1,411057,411057,Delhi
-910000004,Pooja Anil Joshi,919834567890,19960830,pooja.joshi@example.com,DEFPJ4567P,D/O ANIL JOSHI,AUNDH,ITI ROAD,411007,411007,Noida
-910000005,Kunal Mahesh Shah,919845678901,19940117,kunal.shah@example.com,EFGH55678Q,S/O MAHESH SHAH,CAMP,M G ROAD,411001,411001,PUNE
-910000006,Neha Vinod Jadhav,919856789012,19921005,neha.jadhav@example.com,FGHJJ6789R,D/O VINOD JADHAV,HADAPSAR,MAGARPATTA,411028,411028,Hyderabad
-910000007,Saurabh Dinesh Mehta,919867890123,19891222,saurabh.mehta@example.com,GHIMK7890S,S/O DINESH MEHTA,KOREGAON PARK,LANE 5,411001,411001,PUNE
-910000008,Rituja Nitin Chavan,919878901234,19980311,rituja.chavan@example.com,HIJCL8901T,D/O NITIN CHAVAN,BANER,BANER ROAD,411045,411045,Mumbai
-910000009,Anita Kulkarni,919999888777,19890618,anita.kulkarni@example.com,ABCDE0002F,D/O SOMEONE,MG ROAD,AREA 9,411000,411000,PUNE
-910000010,Amit Sharma,918888777666,19960513,amit.sharma@example.com,ABCDE0090F,S/O SOMEONE,MG ROAD,AREA 10,411000,411000,Mumbai
-
+910000201,Rajesh Kumar Sharma,919876512301,19780412,rajesh.sharma@ymail.in,PRKAS3456R,C/O Sharma,Residential address line 2,Landmark - sector block,110017,110017,New Delhi
+910000202,Priya Venkatesh,919812345672,19910522,priya.venkat@ymail.in,VENPK7890P,C/O Venkatesh,Residential address line 2,Landmark - sector block,600040,600040,Chennai
+910000203,Amitabh Kulkarni,919823456783,19861103,amit.kulkarni@ymail.in,KULAM2345K,C/O Kulkarni,Residential address line 2,Landmark - sector block,411038,411038,Pune
+910000204,Kavitha Reddy,919834567894,19930718,kavitha.reddy@ymail.in,REDKY6789K,C/O Reddy,Residential address line 2,Landmark - sector block,500081,500081,Hyderabad
+910000205,Suresh Krishnan,919845678905,19750228,suresh.krishnan@ymail.in,KRISN4567S,C/O Krishnan,Residential address line 2,Landmark - sector block,560076,560076,Bengaluru

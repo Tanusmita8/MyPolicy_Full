@@ -12,4 +12,6 @@ public interface CustomerDetailsRepository extends MongoRepository<CustomerDetai
     Optional<CustomerDetails> findFirstByRefPhoneMobileAndDatBirthCust(Object refPhoneMobile, Integer datBirthCust);
 
     Optional<CustomerDetails> findFirstByCustEmailIDAndDatBirthCust(String custEmailID, Integer datBirthCust);
+
+    Optional<CustomerDetails> findFirstByCustomerId(Integer customerId);
 }

@@ -10,6 +10,8 @@ public class UnifiedPortfolioResponse {
     private int totalPolicies;
 
     public static class PolicySummary {
+        /** MongoDB _id of unified_portfolio document (for detail views). */
+        private String recordId;
         private String policyId;
         private String insurer;
         private String sourceCollection;
@@ -19,6 +21,8 @@ public class UnifiedPortfolioResponse {
         private Integer policyEnd;
         private String matchMethod;
 
+        public String getRecordId() { return recordId; }
+        public void setRecordId(String recordId) { this.recordId = recordId; }
         public String getPolicyId() { return policyId; }
         public void setPolicyId(String policyId) { this.policyId = policyId; }
         public String getInsurer() { return insurer; }

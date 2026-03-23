@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,14 +32,16 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+  private static final AntPathRequestMatcher PUBLIC_CUSTOMER_READS =
+      new AntPathRequestMatcher("/api/v1/customers/**", HttpMethod.GET.name());
+
   private final JwtService jwtService;
   private final UserDetailsService userDetailsService;
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    String path = request.getRequestURI();
-    // Skip JWT validation for BFF internal calls (details endpoint)
-    return path != null && path.startsWith("/api/v1/customers/details/");
+    // Skip JWT for all read-only customer APIs used by BFF (Feign has no end-user Bearer token)
+    return PUBLIC_CUSTOMER_READS.matches(request);
   }
 
   @Override

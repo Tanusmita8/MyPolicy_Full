@@ -14,8 +14,8 @@ spring:
   # ============================================
   data:
     mongodb:
-      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/mypolicy?retryWrites=true&w=majority}
-      database: mypolicy
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}
+      database: Backend_databases
 
 # ============================================
 # Logging

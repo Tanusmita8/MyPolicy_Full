@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -31,6 +32,15 @@ public class GlobalExceptionHandler {
     error.put("status", HttpStatus.CONFLICT.value());
 
     return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+    Map<String, Object> error = new HashMap<>();
+    error.put("timestamp", LocalDateTime.now());
+    error.put("message", ex.getReason());
+    error.put("status", ex.getStatusCode().value());
+    return new ResponseEntity<>(error, ex.getStatusCode());
   }
 
   @ExceptionHandler(RuntimeException.class)

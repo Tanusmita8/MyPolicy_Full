@@ -8,8 +8,8 @@ spring:
     name: data-pipeline-service
   data:
     mongodb:
-      # Prefer MONGODB_URI in production; default below targets Atlas for local/dev.
-      uri: ${MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/?appName=Cluster0}
+      # Atlas: unified_portfolio, customer_details, unmatched_policies, etc.
+      uri: ${SPRING_DATA_MONGODB_URI:${MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}}
       database: Backend_databases
 
 mypolicy:

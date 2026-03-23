@@ -6,7 +6,7 @@ package com.mypolicy.customer.exception;
 public class InvalidCredentialsException extends RuntimeException {
   
   public InvalidCredentialsException() {
-    super("Invalid email or password");
+    super("Invalid full name or PAN");
   }
 
   public InvalidCredentialsException(String message) {

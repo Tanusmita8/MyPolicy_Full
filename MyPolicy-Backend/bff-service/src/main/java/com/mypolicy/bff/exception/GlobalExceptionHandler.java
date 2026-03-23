@@ -78,8 +78,21 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleFeignUnauthorizedException(FeignException.Unauthorized ex) {
     Map<String, Object> error = new HashMap<>();
     error.put("timestamp", LocalDateTime.now());
-    error.put("message", "Unauthorized access to downstream service");
+    String friendly = "Unauthorized access to downstream service";
+    try {
+      String body = ex.contentUTF8();
+      if (body != null && !body.isBlank()) {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(body);
+        if (root.hasNonNull("message")) {
+          friendly = root.get("message").asText();
+        }
+      }
+    } catch (Exception ignored) {
+    }
+    error.put("message", friendly);
     error.put("status", HttpStatus.UNAUTHORIZED.value());
+    error.put("details", ex.contentUTF8());
 
     return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
   }

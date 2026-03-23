@@ -7,6 +7,8 @@ import java.time.LocalDate;
 @Data
 public class PolicyDTO {
   private String id;
+  /** unified_portfolio Mongo _id */
+  private String portfolioRecordId;
   private String customerId;
   private String insurerId;
   private String policyNumber;

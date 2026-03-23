@@ -57,11 +57,17 @@ public class CustomerServiceImpl implements CustomerService {
   public com.mypolicy.customer.dto.AuthResponse login(LoginRequest request) {
     // Login uses customer_details: full name = Customer ID/User ID, PAN = password
     String fullName = request.getCustomerIdOrUserId() != null ? request.getCustomerIdOrUserId().trim() : "";
-    String pan = request.getPassword() != null ? request.getPassword().trim() : "";
+    String panInput = request.getPassword() != null ? request.getPassword().trim() : "";
 
     com.mypolicy.customer.model.CustomerDetails customerDetails =
-        customerDetailsRepository.findFirstByCustomerFullNameIgnoreCaseAndRefCustItNum(fullName, pan)
+        customerDetailsRepository.findFirstByCustomerFullNameIgnoreCase(fullName)
             .orElseThrow(() -> new InvalidCredentialsException());
+
+    String storedPan = customerDetails.getRefCustItNum();
+    if (storedPan == null
+        || !storedPan.trim().equalsIgnoreCase(panInput)) {
+      throw new InvalidCredentialsException();
+    }
 
     String token = jwtService.generateToken(customerDetails.getCustomerFullName());
     CustomerResponse response = mapCustomerDetailsToResponse(customerDetails);
@@ -183,9 +189,32 @@ public class CustomerServiceImpl implements CustomerService {
         .email(cd.getCustEmailID())
         .mobileNumber(mobile)
         .status(com.mypolicy.customer.model.CustomerStatus.ACTIVE)
-        .panNumber(null) // Do not expose PAN in response
-        .dateOfBirth(null)
+        .panNumber(maskPanForDisplay(cd.getRefCustItNum()))
+        .dateOfBirth(parseYyyyMmDd(cd.getDatBirthCust()))
         .address(null)
         .build();
+  }
+
+  private static LocalDate parseYyyyMmDd(Integer yyyymmdd) {
+    if (yyyymmdd == null) {
+      return null;
+    }
+    String s = yyyymmdd.toString();
+    if (s.length() != 8) {
+      return null;
+    }
+    int year = Integer.parseInt(s.substring(0, 4));
+    int month = Integer.parseInt(s.substring(4, 6));
+    int day = Integer.parseInt(s.substring(6, 8));
+    return LocalDate.of(year, month, day);
+  }
+
+  /** Last 4 characters only; full PAN is never returned. */
+  private static String maskPanForDisplay(String pan) {
+    if (pan == null || pan.length() < 4) {
+      return null;
+    }
+    String t = pan.trim().toUpperCase();
+    return "****" + t.substring(t.length() - 4);
   }
 }

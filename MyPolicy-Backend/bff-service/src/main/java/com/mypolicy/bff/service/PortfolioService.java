@@ -51,8 +51,10 @@ public class PortfolioService {
         ? pipelinePortfolio.getPolicies().stream()
             .map(ps -> {
               PolicyDTO dto = new PolicyDTO();
-              dto.setId(ps.getPolicyId());
+              dto.setPortfolioRecordId(ps.getRecordId());
+              dto.setId(ps.getRecordId() != null ? ps.getRecordId() : ps.getPolicyId());
               dto.setPolicyNumber(ps.getPolicyId());
+              dto.setPlanName(ps.getSourceCollection());
               dto.setPolicyType(ps.getSourceCollection());
               dto.setPremiumAmount(ps.getPremium());
               dto.setSumAssured(ps.getSumAssured() != null ? BigDecimal.valueOf(ps.getSumAssured()) : null);

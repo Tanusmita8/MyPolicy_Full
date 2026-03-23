@@ -23,6 +23,7 @@ public class PortfolioService {
         List<UnifiedPortfolioResponse.PolicySummary> policies = records.stream()
                 .map(r -> {
                     UnifiedPortfolioResponse.PolicySummary ps = new UnifiedPortfolioResponse.PolicySummary();
+                    ps.setRecordId(r.getId());
                     ps.setPolicyId(r.getPolicyId());
                     ps.setInsurer(r.getInsurer());
                     ps.setSourceCollection(r.getSourceCollection());

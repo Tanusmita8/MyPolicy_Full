@@ -1,7 +1,0 @@
-Policy Number,Customer Name,DOB,Gender,PAN,Mobile,Email,Insurer,Plan Name,Coverage Amount,Annual Premium,Policy Start Date,Policy End Date,Policy Type,City
-HEPF1000,Bad Pan Format,19920314,M,12345INVALID,919876543210,bad.pan@example.com,HDFC Life,Standard Plan,500000,18500,20240101,20251231,Individual,Delhi
-HEPF1001,Bad Mobile Too Short,19950721,F,BPQPP2345M,12345,bad.mobile.short@example.com,SBI Life,Standard Plan,300000,12000,20240215,20260214,Individual,PUNE
-HEPF1002,Bad Mobile Too Long,19901109,M,CDEPD3456N,919999999999999999,bad.mobile.long@example.com,ICICI Lombard,Family Floater,750000,22500,20230310,20250309,Family Floater,Delhi
-HEPF1003,Bad Email,19960830,F,DEFPJ4567P,919834567890,not-an-email,HDFC Ergo,Standard Plan,400000,14500,20240120,20260119,Individual,Noida
-HEPF1004,Bad DOB Format,1992-10-05,M,FGHJJ6789R,919856789012,bad.dob@example.com,HDFC Life,Family Floater,500000,16200,20240401,20260331,Family Floater,Hyderabad
-

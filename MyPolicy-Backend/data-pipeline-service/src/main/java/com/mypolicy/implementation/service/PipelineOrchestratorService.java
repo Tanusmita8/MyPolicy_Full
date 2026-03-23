@@ -48,8 +48,10 @@ public class PipelineOrchestratorService {
     public StitchingService.StitchingResult uploadAndProcessStream(InputStream inputStream,
                                                                    String originalFilename,
                                                                    String collectionName) throws IOException {
+        // Lowercase so async uploads (multipart original name) still detect .xlsx vs .csv correctly.
+        String filename = originalFilename != null ? originalFilename.toLowerCase() : "";
         List<Map<String, Object>> rows;
-        if (originalFilename != null && originalFilename.endsWith(".xlsx")) {
+        if (filename.endsWith(".xlsx")) {
             rows = fileProcessingService.parseXlsx(inputStream);
         } else {
             rows = fileProcessingService.parseCsv(inputStream);
@@ -62,12 +64,10 @@ public class PipelineOrchestratorService {
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file has no data rows");
         }
-        List<String> insertedIds = metadataIngestionService.ingestRecords(collectionName, rows);
+        metadataIngestionService.ingestRecords(collectionName, rows);
         List<StandardizedRecord> allPolicies = metadataIngestionService.standardizeAllPolicies().values().stream()
                 .flatMap(List::stream)
                 .toList();
-        stitchingService.stitchPolicies(allPolicies);
-        List<StandardizedRecord> uploadBatch = metadataIngestionService.standardizeByIds(collectionName, insertedIds);
-        return stitchingService.computeStitchingStats(uploadBatch);
+        return stitchingService.stitchPolicies(allPolicies);
     }
 }

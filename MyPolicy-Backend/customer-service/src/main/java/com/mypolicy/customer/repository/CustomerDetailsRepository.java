@@ -14,5 +14,8 @@ public interface CustomerDetailsRepository extends MongoRepository<CustomerDetai
     Optional<CustomerDetails> findFirstByCustomerFullNameIgnoreCaseAndRefCustItNum(
             String customerFullName, String refCustItNum);
 
+    /** Login: resolve user by full name (case-insensitive), then verify PAN in service. */
+    Optional<CustomerDetails> findFirstByCustomerFullNameIgnoreCase(String customerFullName);
+
     Optional<CustomerDetails> findFirstByCustomerId(Integer customerId);
 }
