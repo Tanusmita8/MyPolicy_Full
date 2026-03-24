@@ -1,6 +1,5 @@
 # ============================================
 # Data-Pipeline Service Configuration (from Config Server)
-# Consolidated: Ingestion + Metadata + Processing + Matching
 # ============================================
 
 server:
@@ -10,18 +9,12 @@ spring:
   application:
     name: data-pipeline-service
 
-  # ============================================
-  # MongoDB Configuration
-  # ============================================
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}
       database: Backend_databases
       auto-index-creation: true
 
-# ============================================
-# Module-Specific Settings
-# ============================================
 ingestion:
   storage:
     path: storage/ingestion
@@ -41,9 +34,6 @@ matching:
   fuzzy-threshold: 3
   similarity-algorithm: LEVENSHTEIN
 
-# ============================================
-# Feign Configuration
-# ============================================
 feign:
   client:
     config:
@@ -51,17 +41,11 @@ feign:
         connectTimeout: 5000
         readTimeout: 5000
 
-# ============================================
-# Logging
-# ============================================
 logging:
   level:
     com.mypolicy.pipeline: INFO
     com.mypolicy.implementation: INFO
 
-# ============================================
-# Actuator
-# ============================================
 management:
   endpoints:
     web:
@@ -74,6 +58,6 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://discovery-service:8761/eureka}
   instance:
     prefer-ip-address: true
