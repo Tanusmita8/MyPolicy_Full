@@ -4,6 +4,22 @@ server:
 spring:
   application:
     name: bff-service
+  
+  # --- ADDED CORS FOR S3 ACCESS ---
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "${ALLOWED_ORIGINS:*}"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
 
 feign:
   client:
@@ -12,7 +28,6 @@ feign:
         connectTimeout: 5000
         readTimeout: 10000
         loggerLevel: BASIC
-      # Direct URLs to the Load Balancer (Essential for Learner Lab)
       customer-service:
         url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
       data-pipeline-service:
@@ -37,7 +52,6 @@ management:
 eureka:
   client:
     service-url:
-      # Pointing to the Load Balancer since discovery-service name won't resolve
       defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
   instance:
     prefer-ip-address: true
