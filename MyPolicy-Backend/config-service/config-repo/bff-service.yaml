@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: bff-service
-  config:
-    import: optional:configserver:http://admin:config123@mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
 
 feign:
   client:
@@ -13,6 +11,8 @@ feign:
       default:
         connectTimeout: 5000
         readTimeout: 10000
+        loggerLevel: BASIC
+      # Direct URLs to the Load Balancer (Essential for Learner Lab)
       customer-service:
         url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
       data-pipeline-service:
@@ -20,9 +20,24 @@ feign:
       policy-service:
         url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
 
+logging:
+  level:
+    com.mypolicy.bff: DEBUG
+    feign: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
 eureka:
   client:
     service-url:
+      # Pointing to the Load Balancer since discovery-service name won't resolve
       defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
   instance:
     prefer-ip-address: true

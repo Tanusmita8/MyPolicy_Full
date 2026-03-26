@@ -2,19 +2,18 @@ server:
   port: 8085
 
 spring:
-  config:
-    import: optional:configserver:http://admin:config123@config-service:8888
   application:
     name: policy-service
-
+  config:
+    import: optional:configserver:http://admin:config123@mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}
-      database: ${SPRING_DATA_MONGODB_DATABASE:Backend_databases}
+      database: Backend_databases
 
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://discovery-service:8761/eureka}
+      defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
   instance:
     prefer-ip-address: true

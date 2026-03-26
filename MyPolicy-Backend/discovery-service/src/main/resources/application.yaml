@@ -15,8 +15,16 @@ management:
       show-details: always
 
 eureka:
+  instance:
+    # CHANGE: Use the ALB URL so Eureka knows its public identity
+    hostname: mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
+    prefer-ip-address: true
   client:
     register-with-eureka: false
     fetch-registry: false
+    service-url:
+      # CHANGE: Point to the Load Balancer address explicitly
+      defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
   server:
     enable-self-preservation: true
+    eviction-interval-timer-in-ms: 60000

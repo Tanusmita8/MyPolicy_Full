@@ -2,33 +2,18 @@ server:
   port: 8082
 
 spring:
-  config:
-    import: optional:configserver:http://admin:config123@config-service:8888
   application:
     name: data-pipeline-service
+  config:
+    import: optional:configserver:http://admin:config123@mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}
       database: Backend_databases
 
-mypolicy:
-  mapping-config: classpath:mapping_config.json
-  encryption:
-    secret: ${PII_ENCRYPTION_SECRET:MyPolicy2DefaultSecretKey32Chars!!}
-  advisory:
-    life-sum-assured-multiplier: 10
-    health-coverage-min: 300000
-    auto-idv-min: 100000
-    days-nearing-expiry: 90
-
-logging:
-  level:
-    com.mypolicy: INFO
-    com.mypolicy.audit: INFO
-
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_DEFAULT_ZONE:http://discovery-service:8761/eureka}
+      defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
   instance:
     prefer-ip-address: true

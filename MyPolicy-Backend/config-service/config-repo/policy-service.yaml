@@ -1,11 +1,9 @@
 server:
-  port: 8081
+  port: 8085
 
 spring:
   application:
-    name: customer-service
-  config:
-    import: optional:configserver:http://admin:config123@mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
+    name: policy-service
   data:
     mongodb:
       uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/Backend_databases?retryWrites=true&w=majority}

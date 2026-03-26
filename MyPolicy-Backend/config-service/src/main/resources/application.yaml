@@ -1,7 +1,6 @@
 # ============================================
 # Configuration Service - Server Settings
 # ============================================
-
 server:
   port: 8888
 
@@ -10,34 +9,31 @@ spring:
     name: config-service
 
   # ============================================
-  # Config Server - File System Backend
+  # Config Server - Native File System Backend
   # ============================================
-  # Using file system for local development
-  # For production, use Git: spring.cloud.config.server.git.uri=https://github.com/yourorg/config-repo
+  profiles:
+    active: native
+
   cloud:
     config:
       server:
         native:
+          # Using both for reliability in ECS
           search-locations:
             - classpath:/config-repo
-            - file:./config-repo
-        # Support both YAML and Properties formats
+            - file:/app/config-repo
         default-label: master
-
-  profiles:
-    active: native
 
   # ============================================
   # Security Configuration
   # ============================================
-  # Basic authentication for config endpoints
   security:
     user:
       name: admin
       password: config123
 
 # ============================================
-# Actuator Endpoints
+# Actuator & Eureka Settings
 # ============================================
 management:
   endpoints:
@@ -48,6 +44,14 @@ management:
     health:
       show-details: always
 
+eureka:
+  client:
+    service-url:
+      # CHANGE: Pointing to the Load Balancer URL instead of discovery-service
+      defaultZone: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com/eureka/
+  instance:
+    prefer-ip-address: true
+
 # ============================================
 # Logging
 # ============================================
@@ -55,11 +59,3 @@ logging:
   level:
     org.springframework.cloud.config: DEBUG
     com.mypolicy.config: INFO
-
-# ============================================
-# Server Configuration
-# ============================================
-# IMPORTANT: Config Server must start BEFORE other services
-# Startup order:
-#   1. Config Service (8888)
-#   2. All other services (fetch config from 8888)
