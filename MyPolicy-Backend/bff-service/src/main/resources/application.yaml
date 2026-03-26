@@ -24,3 +24,5 @@ eureka:
       defaultZone: ${EUREKA_DEFAULT_ZONE:http://discovery-service:8761/eureka}
   instance:
     prefer-ip-address: true
+    ip-address: ${EUREKA_INSTANCE_IP:}
+    instance-id: ${EUREKA_INSTANCE_IP:localhost}:${server.port}

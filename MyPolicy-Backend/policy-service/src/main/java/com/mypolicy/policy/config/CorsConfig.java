@@ -17,7 +17,7 @@ public class CorsConfig {
   @Bean
   public CorsFilter corsFilter() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+    config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*", "http://*.s3-website-us-east-1.amazonaws.com", "http://*.s3-website*.amazonaws.com"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);

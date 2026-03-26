@@ -24,4 +24,4 @@ EXPOSE 8081
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=3 \
   CMD curl -sf http://localhost:8081/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "TASK_IP=$(hostname -i 2>/dev/null | awk '{print $1}'); [ -z \"$TASK_IP\" ] && TASK_IP=127.0.0.1; export EUREKA_INSTANCE_IP=$TASK_IP; exec java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar app.jar"]

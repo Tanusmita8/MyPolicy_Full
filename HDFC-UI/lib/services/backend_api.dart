@@ -120,41 +120,16 @@ class BackendApi {
     }
   }
 
-  /// Merges `customer_details` (customer-service) + `unified_portfolio` (pipeline) like the old BFF portfolio.
+  /// Fetches merged portfolio via BFF.
   static Future<Map<String, dynamic>?> getMergedPortfolio(String customerId) async {
     final id = int.tryParse(customerId.trim());
     if (id == null) {
       return null;
     }
-    final custUri = Uri.parse(
-      '${BackendConfig.customerServiceBase}/api/v1/customers/details/$id',
+    final uri = Uri.parse(
+      '${BackendConfig.customerServiceBase}/api/bff/portfolio/$id',
     );
-    final pipeUri = Uri.parse(
-      '${BackendConfig.dataPipelineBase}/api/portfolio/$id',
-    );
-
-    final pipe = await _getJson(pipeUri);
-    if (pipe == null) {
-      return null;
-    }
-
-    final cust = await _getJson(custUri);
-
-    final rawPolicies = pipe['policies'] as List<dynamic>?;
-    final policies = <Map<String, dynamic>>[];
-    if (rawPolicies != null) {
-      for (final e in rawPolicies) {
-        if (e is Map<String, dynamic>) {
-          policies.add(_pipelineRowToDashboardShape(e));
-        }
-      }
-    }
-
-    return {
-      'customer': cust,
-      'policies': policies,
-      'totalPolicies': pipe['totalPolicies'],
-    };
+    return _getJson(uri);
   }
 
   static Map<String, dynamic> _pipelineRowToDashboardShape(Map<String, dynamic> p) {
@@ -182,19 +157,19 @@ class BackendApi {
     };
   }
 
-  /// policy-service read model: customer_details + unified_portfolio counts.
+  /// Customer profile via BFF.
   static Future<Map<String, dynamic>?> getCustomerProfile(String customerId) async {
     final id = int.tryParse(customerId.trim());
     if (id == null) {
       return null;
     }
     final uri = Uri.parse(
-      '${BackendConfig.policyServiceBase}/api/v1/customers/$id/profile',
+      '${BackendConfig.customerServiceBase}/api/bff/customer/$id/profile',
     );
     return _getJson(uri);
   }
 
-  /// Single unified_portfolio document.
+  /// Single policy detail via BFF.
   static Future<Map<String, dynamic>?> getPolicyDetail(
     String customerId,
     String portfolioRecordId,
@@ -204,18 +179,20 @@ class BackendApi {
       return null;
     }
     final uri = Uri.parse(
-      '${BackendConfig.policyServiceBase}/api/v1/customers/$id/policies/$portfolioRecordId',
+      '${BackendConfig.customerServiceBase}/api/bff/customer/$id/policies/$portfolioRecordId',
     );
     return _getJson(uri);
   }
 
-  /// Advisory / unified view (data-pipeline).
+  /// Advisory via BFF.
   static Future<Map<String, dynamic>?> getAdvisory(String customerId) async {
     final id = int.tryParse(customerId.trim());
     if (id == null) {
       return null;
     }
-    final uri = Uri.parse('${BackendConfig.dataPipelineBase}/api/advisory/$id');
+    final uri = Uri.parse(
+      '${BackendConfig.customerServiceBase}/api/bff/advisory/$id',
+    );
     return _getJson(uri);
   }
 }
