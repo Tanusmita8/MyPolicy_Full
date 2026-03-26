@@ -4,14 +4,13 @@ server:
 spring:
   application:
     name: bff-service
-  
-  # --- ADDED CORS FOR S3 ACCESS ---
   cloud:
     gateway:
       globalcors:
+        add-to-simple-url-handler-mapping: true
         cors-configurations:
           '[/**]':
-            allowedOrigins: "${ALLOWED_ORIGINS:*}"
+            allowedOrigins: "${ALLOWED_ORIGINS:http://mypolicy-web-231893203344-us-east-1-an.s3-website-us-east-1.amazonaws.com}"
             allowedMethods:
               - GET
               - POST
@@ -28,12 +27,6 @@ feign:
         connectTimeout: 5000
         readTimeout: 10000
         loggerLevel: BASIC
-      customer-service:
-        url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
-      data-pipeline-service:
-        url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
-      policy-service:
-        url: http://mypolicy-alb-1359684399.us-east-1.elb.amazonaws.com
 
 logging:
   level:
